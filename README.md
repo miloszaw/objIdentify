@@ -13,7 +13,7 @@ Utilizes a self-made dataset for training
 
 - Professional-grade light</br>
 
-Proposed timeslot:</br>Easter Week - Mon 29.03 - Sun 04.04</br>This should create a nice dataset of 240-280 pictures
+Proposed timeslot:</br>Easter Week - Mon 29.03 - Sun 04.04</br>This should create a rich and controlled dataset of 240-280 pictures
 
 # Program Features
 <b> No information available at this time </b>
