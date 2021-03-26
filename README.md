@@ -1,4 +1,4 @@
-# Banana Age Adentification
+# Banana Age Identification
 
 Program designed to identify age of bananas within a set margin
 
