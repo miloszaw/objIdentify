@@ -1,5 +1,7 @@
 % Testing Image segmentation
 clc;
+clear all;
+close all;
 main();
 
 function main()
@@ -44,6 +46,7 @@ function [allImg, numOfFiles] = readWriteImgFilesFromToFolder(path, operation)
                 allImg = 0;
             case 2
                 allImg{i} = currImg;
+                %imshow(allImg{1});
         end
     end
 end
@@ -85,14 +88,15 @@ function cnn()
     opts = trainingOptions('sgdm', ...
         'InitialLearnRate',1e-3, ...
         'MaxEpochs',100, ...
-        'MiniBatchSize',64);
+        'MiniBatchSize',64, ...
+        'ExecutionEnvironment','gpu');
 
     trainingData = pixelLabelImageDatastore(imds,pxds);
     net = trainNetwork(trainingData,layers,opts);
-    [testImage, ~] = readWriteImgFilesFromToFolder(pathImgDS, 2);
+    [testImage, ~] = readWriteImgFilesFromToFolder(pathIm, 2);
     
-    C = semanticseg(testImage{98},net);
-    B = labeloverlay(testImage{98},C);%, 'IncludedLabels', "banana", 'Colormap','autumn','Transparency',0.25);
+    C = semanticseg(testImage{1},net);
+    B = labeloverlay(testImage{1},C);%, 'IncludedLabels', "banana", 'Colormap','autumn','Transparency',0.25);
     imshow(B)
     %tempLabelImg = imcrop(testImage{1}, B);
     %imshow(tempLabelImg);
