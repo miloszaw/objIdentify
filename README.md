@@ -16,7 +16,19 @@ Utilizes a self-made dataset for training
 Proposed timeslot:</br>Easter Week - Mon 29.03 - Sun 04.04</br>This should create a rich and controlled dataset of 240-280 pictures
 
 # Program Features
-<b> No information available at this time </b>
+<b> semanticSegmentationCNN.m </b>
+Using sematic segmentation with convoluted neural network the model tries to diffirentiate between a normal banana, a bad banana, background 
+and then label the input image with the correct label corresponding to the pixel value.  
+  
+The script semanticSegmentationCNN.m provides to core functions readWriteImgFilesFromToFolder(path, operation) and cnn().  
+readWriteImgFilesFromToFolder(path, operation) takes images from a folder specified in path, it resizes them to 224x224x3. 
+Based on the operator variable it either writes these new resized images to disk in the folder "resizedDatasetBananas" 
+with a uniqe number for each image and the day the picture was taken, or it shoves them into variable.  
+  
+cnn() is a convoluted neural network that performes semantic segmentation. Each image from resizedDatasetBananas has a ground trouth label, 
+the gTruth labels are located in the folder "PixelLabelData_2". Training of the model is done on a CUDA gpu to speed up processing time, 
+if CUDA gpu is unavailable on your system then change the 'ExecutionEnvironment' to cpu. The semanticseg method takes an image, it then 
+runs the image trough the CNN and returns a semantic segmentation of the input image, the returned image is then overlayed with the gTruth labels.  
 </br> </br>
 
 Authored and developed by Group 5 for IDATG2206 - Computer Vision - Project - Spring 2020 </br>

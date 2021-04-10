@@ -91,8 +91,8 @@ function cnn()
     net = trainNetwork(trainingData,layers,opts);
     [testImage, ~] = readWriteImgFilesFromToFolder(pathTestImgDataset, 2);
     
-    C = semanticseg(testImage{16},net);
-    B = labeloverlay(testImage{16},C);%, 'IncludedLabels', "normalbanana", 'Colormap','autumn','Transparency',0.25);
+    C = semanticseg(testImage{2},net);
+    B = labeloverlay(testImage{2},C);%, 'IncludedLabels', "normalbanana", 'Colormap','autumn','Transparency',0.25);
     imshow(B)
 end
 
