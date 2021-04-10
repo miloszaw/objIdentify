@@ -1,22 +1,24 @@
-% Testing Image segmentation
+% Program that labels bananas using semantic segmentation in a convoluted
+% neural network
 clc;
 clear all;
 close all;
 main();
 
+% Runs program and handles all of the functions
 function main()
-    path = '.\bananasImgs\';
-    %[~,~] = readWriteImgFilesFromToFolder(path, 1);
+    path = '.\bananasImgs\';                                % Path to full resolution original images taken of bananas
+    %[~,~] = readWriteImgFilesFromToFolder(path, 1);        % Uncomment this when creating dataset for use in CNN
     cnn();
 end
 
 % Reads images from file, writes resized images to folder, specify function
 % variable "operation" for what you need the function to do
-% 1 = read, resisze and write to disk
+% 1 = read, resize and write to disk
 % 2 = read, resize, put all img in variable which is returned as allImg
 function [allImg, numOfFiles] = readWriteImgFilesFromToFolder(path, operation)
     dayCount = 0;
-    destFolder = '.\resizedDatasetBananas2';
+    destFolder = '.\resizedDatasetBananas';
     switch operation
         case 1
             imgFile = dir([path '*.jpg']);
@@ -33,38 +35,33 @@ function [allImg, numOfFiles] = readWriteImgFilesFromToFolder(path, operation)
         currImg = currImg(:,:,min(1:3, end));
         currImg = imresize(currImg, [224 224]);     % Image resized to 224x224x3
         switch operation
-            case 1
+            case 1                                  % Creates new folder if it doesn't already exist
+                                                    % Numerates images with banana Number and Day                                                    
                 if exist(destFolder, 'dir')
                     if(mod(i-1, 10) == 0)
                         dayCount = dayCount + 1;
                     end
-                    countStr = num2str(i);                  % This is retarded
+                    countStr = num2str(i);          % This is retarded
                     dayCountStr = num2str(dayCount);
                     imgString = append(destFolder, '\', 'banana', countStr, '_day', dayCountStr, '_Resized.jpg');
                     imwrite(currImg, imgString);                    
                 end
-                allImg = 0;
+                allImg = 0;                         % allImg needs a value because it's returned
             case 2
                 allImg{i} = currImg;
-                %imshow(allImg{1});
         end
     end
 end
 
+% Convoluted neural network that performs semantic segmentation
 function cnn()
-    path = '.\day01\';
-    pathIm = '.\test3imgtrain\';
-    pathImgDS = '.\resizedDatasetBananas';%'.\resizedImages';
-    pathLab = '.\PixelLabelData_2\';%'.\PixelLabelData_1\';
-    dataSetDir = fullfile(pathImgDS);
-    imgDir = fullfile(dataSetDir, '*.jpg');
+    pathTestImgDataset = '.\testImgDataset\';
+    pathImgDS = '.\resizedDatasetBananas';
+    pathLab = '.\PixelLabelData_2\';
+    trainDatasetDir = fullfile(pathImgDS);
+    trainImgDir = fullfile(trainDatasetDir, '*.jpg');
     labelDir = fullfile(pathLab, '*.png');
-    imds = imageDatastore(imgDir);
-    %imds = imresize(imdsTemp, [32, 32]);
-    
-    %[allImgTemp, ~] = readWriteImgFilesFromToFolder(pathIm, 1);
-    %imds = imageDatastore('.\resizedImages', '*.jpg' );
-    
+    trainImgds = imageDatastore(trainImgDir);    
     classNames = ["normalbanana", "badbanana", "background"];
     labelIDs   = [1 2 3];
     pxds = pixelLabelDatastore(labelDir, classNames, labelIDs);   
@@ -83,23 +80,20 @@ function cnn()
         convolution2dLayer(1,numClasses);
         softmaxLayer()
         pixelClassificationLayer()
-    ]
-    
+    ]    
     opts = trainingOptions('sgdm', ...
         'InitialLearnRate',1e-3, ...
         'MaxEpochs',100, ...
         'MiniBatchSize',64, ...
-        'ExecutionEnvironment','gpu');
+        'ExecutionEnvironment','gpu');      % Change this to 'cpu' if CUDA gpu is not available
 
-    trainingData = pixelLabelImageDatastore(imds,pxds);
+    trainingData = pixelLabelImageDatastore(trainImgds,pxds);
     net = trainNetwork(trainingData,layers,opts);
-    [testImage, ~] = readWriteImgFilesFromToFolder(pathIm, 2);
+    [testImage, ~] = readWriteImgFilesFromToFolder(pathTestImgDataset, 2);
     
-    C = semanticseg(testImage{1},net);
-    B = labeloverlay(testImage{1},C);%, 'IncludedLabels', "banana", 'Colormap','autumn','Transparency',0.25);
+    C = semanticseg(testImage{16},net);
+    B = labeloverlay(testImage{16},C);%, 'IncludedLabels', "normalbanana", 'Colormap','autumn','Transparency',0.25);
     imshow(B)
-    %tempLabelImg = imcrop(testImage{1}, B);
-    %imshow(tempLabelImg);
 end
 
 % function segmentImageLazysnap()
