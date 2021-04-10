@@ -17,6 +17,7 @@ Proposed timeslot:</br>Easter Week - Mon 29.03 - Sun 04.04</br>This should creat
 
 # Program Features
 <b> semanticSegmentationCNN.m </b>
+  
 Using sematic segmentation with convoluted neural network the model tries to diffirentiate between a normal banana, a bad banana, background 
 and then label the input image with the correct label corresponding to the pixel value.  
   
@@ -26,8 +27,8 @@ Based on the operator variable it either writes these new resized images to disk
 with a uniqe number for each image and the day the picture was taken, or it shoves them into variable.  
   
 cnn() is a convoluted neural network that performes semantic segmentation. Each image from resizedDatasetBananas has a ground trouth label, 
-the gTruth labels are located in the folder "PixelLabelData_2". Training of the model is done on a CUDA gpu to speed up processing time, 
-if CUDA gpu is unavailable on your system then change the 'ExecutionEnvironment' to cpu. The semanticseg method takes an image, it then 
+the gTruth labels are located in the folder "PixelLabelData_2". Training of the model is done on a CUDA GPU to speed up processing time, 
+if CUDA GPU is unavailable on your system then change the 'ExecutionEnvironment' to cpu. The semanticseg method takes an image, it then 
 runs the image trough the CNN and returns a semantic segmentation of the input image, the returned image is then overlayed with the gTruth labels.  
 </br> </br>
 
