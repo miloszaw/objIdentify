@@ -83,15 +83,31 @@ function cnn()
     ]    
     opts = trainingOptions('sgdm', ...
         'InitialLearnRate',1e-3, ...
-        'MaxEpochs',100, ...
+        'MaxEpochs',1, ...
         'MiniBatchSize',64, ...
-        'ExecutionEnvironment','gpu');      % Change this to 'cpu' if CUDA gpu is not available
+        'ExecutionEnvironment','cpu');      % Change this to 'cpu' if CUDA gpu is not available
 
     trainingData = pixelLabelImageDatastore(trainImgds,pxds);
     net = trainNetwork(trainingData,layers,opts);
     [testImage, ~] = readWriteImgFilesFromToFolder(pathTestImgDataset, 2);
     
     C = semanticseg(testImage{2},net);
+    c = size(C);
+    gb = 0;
+    bb = 0;
+    
+    for y=1:c(1)
+        for x=1:c(2)
+            
+            switch C(y,x)
+                case classNames(1)
+                    gb = gb + 1;
+                case classNames(2)
+                    bb = bb + 1;
+            end
+        end
+    end
+    
     B = labeloverlay(testImage{2},C);%, 'IncludedLabels', "normalbanana", 'Colormap','autumn','Transparency',0.25);
     imshow(B)
 end
