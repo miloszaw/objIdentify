@@ -88,7 +88,11 @@ function cnn()
         'ExecutionEnvironment','cpu');      % Change this to 'cpu' if CUDA gpu is not available
 
     trainingData = pixelLabelImageDatastore(trainImgds,pxds);
-    net = trainNetwork(trainingData,layers,opts);
+    if exists('trainedNet.mat')
+        net = load('trainedNet.mat')
+    else
+        net = trainNetwork(trainingData,layers,opts);
+    end
     %save('trainedNet.mat','net');			% Uncomment this to save net
     [testImage, ~] = readWriteImgFilesFromToFolder(pathTestImgDataset, 2);
     [C, score, allScores] = semanticseg(testImage{2},net);
