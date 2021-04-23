@@ -83,23 +83,22 @@ function cnn()
     ]    
     opts = trainingOptions('sgdm', ...
         'InitialLearnRate',1e-3, ...
-        'MaxEpochs',1, ...
+        'MaxEpochs',100, ...
         'MiniBatchSize',64, ...
         'ExecutionEnvironment','cpu');      % Change this to 'cpu' if CUDA gpu is not available
 
     trainingData = pixelLabelImageDatastore(trainImgds,pxds);
     net = trainNetwork(trainingData,layers,opts);
+    %save('trainedNet.mat','net');			% Uncomment this to save net
     [testImage, ~] = readWriteImgFilesFromToFolder(pathTestImgDataset, 2);
-    
-    C = semanticseg(testImage{2},net);
+    [C, score, allScores] = semanticseg(testImage{2},net);
+    B = labeloverlay(testImage{2},C)
     c = size(C);
-    gb = 0;
     bb = 0;
-    
+    gb = 0;
     for y=1:c(1)
         for x=1:c(2)
-            
-            switch C(y,x)
+            switch C(y, x)
                 case classNames(1)
                     gb = gb + 1;
                 case classNames(2)
@@ -107,9 +106,21 @@ function cnn()
             end
         end
     end
-    
-    B = labeloverlay(testImage{2},C);%, 'IncludedLabels', "normalbanana", 'Colormap','autumn','Transparency',0.25);
+    totalBBandGB = gb + bb;
+    percentOfbb = (bb / totalBBandGB);
+    disp(percentOfbb)
+    strPrediction = "";
+    if(percentOfbb > 0.5)
+        strPrediction = "The banana has gone bad";
+    else
+        strPrediction = "The banana is still good";
+    end
+    figure
+    text(10, 0, strPrediction, 'FontSize', 30);
+    annotation('textbox', 'String', strPrediction)
     imshow(B)
+    disp(strPrediction);
+    disp("Program finished")    
 end
 
 % function segmentImageLazysnap()
