@@ -55,75 +55,83 @@ end
 
 % Convoluted neural network that performs semantic segmentation
 function cnn()
+
     pathTestImgDataset = '.\testImgDataset\';
     pathImgDS = '.\resizedDatasetBananas';
     pathLab = '.\PixelLabelData_2\';
-    trainDatasetDir = fullfile(pathImgDS);
-    trainImgDir = fullfile(trainDatasetDir, '*.jpg');
-    labelDir = fullfile(pathLab, '*.png');
-    trainImgds = imageDatastore(trainImgDir);    
+
     classNames = ["normalbanana", "badbanana", "background"];
     labelIDs   = [1 2 3];
-    pxds = pixelLabelDatastore(labelDir, classNames, labelIDs);   
     
-    numFilters = 64;
-    filterSize = 4;
-    numClasses = 3;
-    layers = [
-        imageInputLayer([224 224 3])
-        convolution2dLayer(filterSize,numFilters,'Padding',1) % 2
-        reluLayer()
-        maxPooling2dLayer(2,'Stride',2)
-        convolution2dLayer(filterSize,numFilters,'Padding',2)
-        reluLayer()
-        transposedConv2dLayer(4,numFilters,'Stride',2,'Cropping',1);
-        convolution2dLayer(1,numClasses);
-        softmaxLayer()
-        pixelClassificationLayer()
-    ]    
-    opts = trainingOptions('sgdm', ...
-        'InitialLearnRate',1e-3, ...
-        'MaxEpochs',1, ...
-        'MiniBatchSize',64, ...
-        'ExecutionEnvironment','cpu');      % Change this to 'cpu' if CUDA gpu is not available
-
-    trainingData = pixelLabelImageDatastore(trainImgds,pxds);
     if exist('trainedNet.mat', 'file')
-        net = load('trainedNet.mat', 'net').net;
+        net = load('trainedNet.mat').net;
     else
+        trainDatasetDir = fullfile(pathImgDS);
+        trainImgDir = fullfile(trainDatasetDir, '*.jpg');
+        labelDir = fullfile(pathLab, '*.png');
+        trainImgds = imageDatastore(trainImgDir);    
+        pxds = pixelLabelDatastore(labelDir, classNames, labelIDs);   
+
+        trainingData = pixelLabelImageDatastore(trainImgds,pxds);
+        
+        numFilters = 64;
+        filterSize = 4;
+        numClasses = 3;
+        layers = [
+            imageInputLayer([224 224 3])
+            convolution2dLayer(filterSize,numFilters,'Padding',1) % 2
+            reluLayer()
+            maxPooling2dLayer(2,'Stride',2)
+            convolution2dLayer(filterSize,numFilters,'Padding',2)
+            reluLayer()
+            transposedConv2dLayer(4,numFilters,'Stride',2,'Cropping',1);
+            convolution2dLayer(1,numClasses);
+            softmaxLayer()
+            pixelClassificationLayer()
+        ]    
+        opts = trainingOptions('sgdm', ...
+            'InitialLearnRate',1e-3, ...
+            'MaxEpochs',1, ...
+            'MiniBatchSize',64, ...
+            'ExecutionEnvironment','cpu');      % Change this to 'cpu' if CUDA gpu is not available
+
         net = trainNetwork(trainingData,layers,opts);
+        save('trainedNet.mat');	
     end
-    %save('trainedNet.mat','-struct','net');			% Uncomment this to save net
-    [testImage, ~] = readWriteImgFilesFromToFolder(pathTestImgDataset, 2);
-    [C, score, allScores] = semanticseg(testImage{2},net);
-    B = labeloverlay(testImage{2},C)
-    c = size(C);
-    bb = 0;
-    gb = 0;
-    for y=1:c(1)
-        for x=1:c(2)
-            switch C(y, x)
-                case classNames(1)
-                    gb = gb + 1;
-                case classNames(2)
-                    bb = bb + 1;
+    
+    [testImage, ~] = readWriteImgFilesFromToFolder(pathTestImgDataset, 2); 
+    for i = 1:size(testImage,2)
+            [C, score, allScores] = semanticseg(testImage{i},net);
+        B = labeloverlay(testImage{i},C);
+        c = size(C);
+        bb = 0;
+        gb = 0;
+        for y=1:c(1)
+            for x=1:c(2)
+                switch C(y, x)
+                    case classNames(1)
+                        gb = gb + 1;
+                    case classNames(2)
+                        bb = bb + 1;
+                end
             end
         end
+        totalBBandGB = gb + bb;
+        percentOfbb = (bb / totalBBandGB);
+        disp(percentOfbb)
+        strPrediction = "";
+        if(percentOfbb > 0.5)
+            strPrediction = "The banana has gone bad";
+        else
+            strPrediction = "The banana is still good";
+        end
+        dim = [.5 .6 .3 .3];
+        figure,
+        montage({B, testImage{i}}),
+        annotation('textbox',dim,'BackgroundColor','w','String',(1-percentOfbb),'FitBoxToText','on');
+        disp(strPrediction);
     end
-    totalBBandGB = gb + bb;
-    percentOfbb = (bb / totalBBandGB);
-    disp(percentOfbb)
-    strPrediction = "";
-    if(percentOfbb > 0.5)
-        strPrediction = "The banana has gone bad";
-    else
-        strPrediction = "The banana is still good";
-    end
-    figure
-    text(10, 0, strPrediction, 'FontSize', 30);
-    annotation('textbox', 'String', strPrediction)
-    imshow(B)
-    disp(strPrediction);
+
     disp("Program finished")    
 end
 
